@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tournament Bracket</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="workspace">
+        <aside class="panel">
+          <div class="brand">
+            <div id="modeMark" class="mark">DE</div>
+            <div>
+              <h1 id="modeTitle">จัดสาย Double Elimination</h1>
+              <p id="modeDescription">สร้างสายแข่ง บันทึกผล และติดตามผู้แพ้สองครั้งตกรอบ</p>
+            </div>
+          </div>
+
+          <label class="field">
+            <span>ชื่อรายการแข่งขัน</span>
+            <input id="tournamentName" type="text" value="Tournament Bracket" maxlength="48">
+          </label>
+
+          <fieldset class="field mode-field">
+            <legend>รูปแบบการแข่งขัน</legend>
+            <label>
+              <input type="radio" name="bracketMode" value="single">
+              <span>Elimination</span>
+            </label>
+            <label>
+              <input type="radio" name="bracketMode" value="double" checked>
+              <span>Double Elimination</span>
+            </label>
+          </fieldset>
+
+          <label class="field">
+            <span>รายชื่อผู้เข้าแข่ง</span>
+            <textarea id="playerInput" spellcheck="false">Alpha
+Bravo
+Charlie
+Delta
+Echo
+Foxtrot
+Golf
+Hotel</textarea>
+          </label>
+
+          <div class="hint">ใส่ 1 ชื่อต่อ 1 บรรทัด รองรับ 2-16 คน และระบบจะเติม BYE ให้อัตโนมัติเมื่อจำนวนไม่ครบกำลังสอง</div>
+
+          <div class="actions">
+            <button id="buildBtn" class="primary" type="button">สร้างสาย</button>
+            <button id="shuffleBtn" type="button">สุ่มทีม</button>
+            <button id="resetBtn" type="button">ล้างผลแข่ง</button>
+          </div>
+
+          <section class="summary">
+            <h2>สถานะ</h2>
+            <div class="summary-grid">
+              <div>
+                <strong id="entrantCount">8</strong>
+                <span>ผู้เข้าแข่ง</span>
+              </div>
+              <div>
+                <strong id="activeCount">8</strong>
+                <span>ยังอยู่ในรายการ</span>
+              </div>
+              <div>
+                <strong id="finishedCount">0</strong>
+                <span>แข่งแล้ว</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="ranking">
+            <h2>อันดับล่าสุด</h2>
+            <ol id="standingList"></ol>
+          </section>
+        </aside>
+
+        <section class="stage">
+          <header class="stage-header">
+            <div>
+              <p id="eventLabel">Tournament Bracket</p>
+              <h2>สายการแข่งขัน</h2>
+            </div>
+            <div id="championBadge" class="champion-badge hidden"></div>
+          </header>
+
+          <section class="live-panel" aria-live="polite">
+            <div class="live-title">
+              <div>
+                <p>Live Bracket</p>
+                <h2>คู่ที่พร้อมแข่ง</h2>
+              </div>
+              <span id="liveCount">0 คู่</span>
+            </div>
+            <div id="liveBracket" class="live-list"></div>
+          </section>
+
+          <nav class="tabs" aria-label="Bracket views">
+            <button class="tab active" data-view="all" type="button">ทั้งหมด</button>
+            <button class="tab" data-view="winners" type="button">Winner</button>
+            <button class="tab" data-view="losers" type="button">Loser</button>
+            <button class="tab" data-view="finals" type="button">Final</button>
+          </nav>
+
+          <div id="bracket" class="bracket" aria-live="polite"></div>
+        </section>
+      </section>
+    </main>
+
+    <template id="matchTemplate">
+      <article class="match">
+        <div class="match-top">
+          <span class="match-title"></span>
+          <span class="match-status"></span>
+        </div>
+        <div class="score-head">
+          <span>ทีม</span>
+          <span>คะแนน</span>
+        </div>
+        <div class="slot-row">
+          <button class="slot" type="button" data-slot="0">
+            <span class="seed"></span>
+            <span class="name"></span>
+            <span class="losses"></span>
+          </button>
+          <input class="score-input" type="number" min="0" step="1" inputmode="numeric" placeholder="0" aria-label="คะแนนทีมที่ 1">
+        </div>
+        <div class="slot-row">
+          <button class="slot" type="button" data-slot="1">
+            <span class="seed"></span>
+            <span class="name"></span>
+            <span class="losses"></span>
+          </button>
+          <input class="score-input" type="number" min="0" step="1" inputmode="numeric" placeholder="0" aria-label="คะแนนทีมที่ 2">
+        </div>
+        <div class="match-actions">
+          <button class="score-submit" type="button">ยืนยันคะแนน</button>
+          <button class="undo-result" type="button">ยกเลิกผล</button>
+        </div>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
