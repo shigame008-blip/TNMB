@@ -10,6 +10,9 @@ const elements = {
   buildBtn: $("#buildBtn"),
   shuffleBtn: $("#shuffleBtn"),
   resetBtn: $("#resetBtn"),
+  guideBtn: $("#guideBtn"),
+  guideModal: $("#guideModal"),
+  guideCloseBtn: $("#guideCloseBtn"),
   bracket: $("#bracket"),
   template: $("#matchTemplate"),
   eventLabel: $("#eventLabel"),
@@ -981,9 +984,25 @@ function resetResults() {
   createBracket();
 }
 
+function openGuide() {
+  elements.guideModal.classList.remove("hidden");
+}
+
+function closeGuide() {
+  elements.guideModal.classList.add("hidden");
+}
+
 elements.buildBtn.addEventListener("click", createBracket);
 elements.shuffleBtn.addEventListener("click", shufflePlayers);
 elements.resetBtn.addEventListener("click", resetResults);
+elements.guideBtn.addEventListener("click", openGuide);
+elements.guideCloseBtn.addEventListener("click", closeGuide);
+elements.guideModal.addEventListener("click", (event) => {
+  if (event.target === elements.guideModal) closeGuide();
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeGuide();
+});
 elements.tournamentName.addEventListener("input", updateSummary);
 elements.modeInputs.forEach((input) => {
   input.addEventListener("change", () => createBracket());

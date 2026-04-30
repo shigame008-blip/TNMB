@@ -10,6 +10,8 @@
     <main class="shell">
       <section class="workspace">
         <aside class="panel">
+          <button id="guideBtn" class="guide-button" type="button">คู่มือการใช้งาน</button>
+
           <div class="brand">
             <div id="modeMark" class="mark">DE</div>
             <div>
@@ -115,6 +117,55 @@ Hotel</textarea>
         </section>
       </section>
     </main>
+
+    <div id="guideModal" class="guide-modal hidden" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+      <div class="guide-card">
+        <div class="guide-head">
+          <div>
+            <p>Website Manual</p>
+            <h2 id="guideTitle">คู่มือการใช้งาน Tournament Bracket</h2>
+          </div>
+          <button id="guideCloseBtn" class="guide-close" type="button" aria-label="ปิดคู่มือ">ปิด</button>
+        </div>
+
+        <div class="guide-content">
+          <section>
+            <h3>1. การใส่รายชื่อทีม</h3>
+            <p>พิมพ์ชื่อทีมในช่องรายชื่อผู้เข้าแข่งขัน โดยใส่ 1 ทีมต่อ 1 บรรทัด ระบบรองรับ 2-16 ทีม</p>
+          </section>
+
+          <section>
+            <h3>2. การเลือกโหมดการแข่งขัน</h3>
+            <p>เลือกโหมด Elimination, Double Elimination หรือ Round Robin จากแถบด้านซ้าย จากนั้นระบบจะสร้างรูปแบบการแข่งขันตามโหมดที่เลือก</p>
+          </section>
+
+          <section>
+            <h3>3. การสร้างสายและสุ่มทีม</h3>
+            <p>กดปุ่มสร้างสายเพื่อเริ่มการแข่งขัน หากต้องการสุ่มลำดับทีมให้กดปุ่มสุ่มทีมก่อนหรือหลังใส่รายชื่อ</p>
+          </section>
+
+          <section>
+            <h3>4. การบันทึกคะแนน</h3>
+            <p>ใส่คะแนนของทั้งสองทีมในช่องคะแนน แล้วกดปุ่มยืนยันคะแนน ระบบจะเลือกผู้ชนะให้อัตโนมัติจากคะแนนที่มากกว่า</p>
+          </section>
+
+          <section>
+            <h3>5. การยกเลิกผลและล้างผลแข่ง</h3>
+            <p>หากกรอกผลผิด ให้กดปุ่มยกเลิกผลในแมตช์นั้น ระบบจะย้อนผลการแข่งขันที่เกี่ยวข้องให้ หากต้องการเริ่มใหม่ทั้งหมดให้กดล้างผลแข่ง</p>
+          </section>
+
+          <section>
+            <h3>6. โหมด Round Robin</h3>
+            <p>ทุกทีมจะแข่งพบกันหมด หากคะแนนเท่ากันจะบันทึกเป็นผลเสมอ และระบบจะแสดงตารางคะแนนแบบลีกฟุตบอล โดยชนะได้ 3 แต้ม เสมอได้ 1 แต้ม และแพ้ได้ 0 แต้ม</p>
+          </section>
+
+          <section>
+            <h3>7. การใช้งานบนมือถือ</h3>
+            <p>สามารถใช้งานได้ทั้งแนวตั้งและแนวนอน หากต้องการเห็นสายการแข่งขันกว้างขึ้น แนะนำให้หมุนมือถือเป็นแนวนอน</p>
+          </section>
+        </div>
+      </div>
+    </div>
 
     <template id="matchTemplate">
       <article class="match">
