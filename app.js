@@ -38,7 +38,11 @@ function readPlayers() {
     id: `p${index + 1}`,
     name,
     seed: index + 1,
+    wins: 0,
+    draws: 0,
     losses: 0,
+    pointsFor: 0,
+    pointsAgainst: 0,
     eliminated: false,
   }));
 }
@@ -82,13 +86,32 @@ function isDoubleMode() {
   return state.mode === "double";
 }
 
+function isRoundMode() {
+  return state.mode === "round";
+}
+
 function updateModeBrand() {
-  const isDouble = isDoubleMode();
-  elements.modeMark.textContent = isDouble ? "DE" : "EL";
-  elements.modeTitle.textContent = isDouble ? "จัดสาย Double Elimination" : "จัดสาย Elimination";
-  elements.modeDescription.textContent = isDouble
-    ? "สร้างสายแข่ง บันทึกผล และติดตามผู้แพ้สองครั้งตกรอบ"
-    : "สร้างสายแข่ง บันทึกผล และแพ้ครั้งเดียวตกรอบ";
+  const modeText = {
+    double: {
+      mark: "DE",
+      title: "จัดสาย Double Elimination",
+      description: "สร้างสายแข่ง บันทึกผล และติดตามผู้แพ้สองครั้งตกรอบ",
+    },
+    single: {
+      mark: "EL",
+      title: "จัดสาย Elimination",
+      description: "สร้างสายแข่ง บันทึกผล และแพ้ครั้งเดียวตกรอบ",
+    },
+    round: {
+      mark: "RR",
+      title: "จัดสาย Round Robin",
+      description: "สร้างตารางแข่งพบกันหมด บันทึกผล และจัดอันดับตามคะแนนรวม",
+    },
+  }[state.mode];
+
+  elements.modeMark.textContent = modeText.mark;
+  elements.modeTitle.textContent = modeText.title;
+  elements.modeDescription.textContent = modeText.description;
 }
 
 function makeMatch({ id, bracket, round, label, nextWin = null, nextLose = null }) {
@@ -119,6 +142,11 @@ function createBracket(options = {}) {
   const players = readPlayers();
   if (players.length < 2) {
     alert("กรุณาใส่รายชื่ออย่างน้อย 2 คน");
+    return;
+  }
+
+  if (mode === "round") {
+    createRoundRobinTournament(players, replayResults);
     return;
   }
 
@@ -235,6 +263,59 @@ function createBracket(options = {}) {
   render();
 }
 
+function createRoundRobinTournament(players, replayResults = []) {
+  const matches = [];
+  const rounds = buildRoundRobinRounds(players);
+
+  rounds.forEach((pairs, roundIndex) => {
+    pairs.forEach(([playerA, playerB], pairIndex) => {
+      const match = makeMatch({
+        id: `RR${roundIndex + 1}-${pairIndex}`,
+        bracket: "roundrobin",
+        round: roundIndex + 1,
+        label: `RR${roundIndex + 1}.${pairIndex + 1}`,
+      });
+      match.slots[0] = playerA;
+      match.slots[1] = playerB;
+      matches.push(match);
+    });
+  });
+
+  state.players = players;
+  state.matches = matches;
+  state.results = [];
+  state.mode = "round";
+  if (state.activeView !== "all" && state.activeView !== "roundrobin") {
+    state.activeView = "all";
+  }
+  replayResults.forEach((result) => replayResult(result));
+  render();
+}
+
+function buildRoundRobinRounds(players) {
+  let rotating = [...players];
+  if (rotating.length % 2 === 1) rotating.push(null);
+
+  const rounds = [];
+  const total = rotating.length;
+  for (let round = 0; round < total - 1; round += 1) {
+    const pairs = [];
+    for (let index = 0; index < total / 2; index += 1) {
+      const playerA = rotating[index];
+      const playerB = rotating[total - 1 - index];
+      if (playerA && playerB) pairs.push([playerA, playerB]);
+    }
+    rounds.push(pairs);
+
+    const fixed = rotating[0];
+    const rest = rotating.slice(1);
+    rest.unshift(rest.pop());
+    rotating = [fixed, ...rest];
+  }
+
+  return rounds;
+}
+
 function resolveByes() {
   let changed = true;
   while (changed) {
@@ -285,6 +366,12 @@ function completeMatch(match, winner, options = {}) {
   match.loser = loser;
   match.complete = true;
 
+  if (match.bracket === "roundrobin") {
+    applyRoundRobinResult(match, winner, loser);
+    recordResult(resultRecord);
+    return;
+  }
+
   if (match.id === "GF-1") {
     if (loser) loser.losses += 1;
     if (winner.id === match.slots[0]?.id) {
@@ -325,6 +412,53 @@ function completeMatch(match, winner, options = {}) {
   recordResult(resultRecord);
 }
 
+function applyRoundRobinResult(match, winner, loser) {
+  winner.wins += 1;
+
+  if (loser) {
+    loser.losses += 1;
+  }
+
+  const scores = match.scores.map((score) => Number(score));
+  if (match.scores.every((score) => score !== "") && scores.every(Number.isFinite)) {
+    match.slots.forEach((player, index) => {
+      player.pointsFor += scores[index];
+      player.pointsAgainst += scores[index === 0 ? 1 : 0];
+    });
+  }
+}
+
+function completeRoundRobinDraw(match, options = {}) {
+  if (!match || match.complete || match.bracket !== "roundrobin" || match.slots.some((slot) => !slot)) return;
+
+  const shouldRecord = options.record !== false;
+  const resultRecord = shouldRecord
+    ? {
+        matchId: match.id,
+        winnerId: null,
+        isDraw: true,
+        scores: [...match.scores],
+      }
+    : null;
+
+  match.winner = null;
+  match.loser = null;
+  match.complete = true;
+
+  const scores = match.scores.map((score) => Number(score));
+  const hasValidScores = match.scores.every((score) => score !== "") && scores.every(Number.isFinite);
+
+  match.slots.forEach((player, index) => {
+    player.draws += 1;
+    if (hasValidScores) {
+      player.pointsFor += scores[index];
+      player.pointsAgainst += scores[index === 0 ? 1 : 0];
+    }
+  });
+
+  recordResult(resultRecord);
+}
+
 function recordResult(resultRecord) {
   if (!resultRecord) return;
   state.results.push(resultRecord);
@@ -333,6 +467,13 @@ function recordResult(resultRecord) {
 function replayResult(result) {
   const match = state.matches.find((item) => item.id === result.matchId);
   if (!match || match.complete || match.slots.some((slot) => !slot)) return;
+
+  if (result.isDraw && match.bracket === "roundrobin") {
+    match.scores = [...result.scores];
+    completeRoundRobinDraw(match, { record: false });
+    state.results.push({ ...result, scores: [...result.scores] });
+    return;
+  }
 
   const winner = match.slots.find((player) => player.id === result.winnerId);
   if (!winner) return;
@@ -380,6 +521,12 @@ function confirmScore(matchId) {
 
   if (hasInvalidScore) {
     alert("กรุณาใส่คะแนนเป็นเลขจำนวนเต็ม 0 ขึ้นไปให้ครบทั้งสองทีม");
+    return;
+  }
+
+  if (scores[0] === scores[1] && match.bracket === "roundrobin") {
+    completeRoundRobinDraw(match);
+    render();
     return;
   }
 
@@ -558,6 +705,10 @@ function renderSection(bracket, title) {
   return section;
 }
 
+function renderRoundRobinSection() {
+  return renderSection("roundrobin", "Round Robin");
+}
+
 function renderMirroredSection(bracket, title) {
   const rounds = groupMatches(bracket);
   if (!rounds.length) return renderSection(bracket, title);
@@ -642,7 +793,9 @@ function shouldActivateResetFinal() {
 
 function updateSummary() {
   const finished = state.matches.filter((match) => match.complete && match.slots.some(Boolean)).length;
-  const active = state.players.filter((player) => !player.eliminated).length;
+  const active = isRoundMode()
+    ? state.players.length
+    : state.players.filter((player) => !player.eliminated).length;
   const champion = getChampion();
 
   elements.eventLabel.textContent = elements.tournamentName.value.trim() || "Tournament Bracket";
@@ -652,21 +805,111 @@ function updateSummary() {
   elements.championBadge.classList.toggle("hidden", !champion);
   elements.championBadge.textContent = champion ? `แชมป์: ${champion.name}` : "";
 
-  const standings = [...state.players].sort((a, b) => {
+  const standings = getStandings();
+
+  elements.standingList.innerHTML = "";
+  if (isRoundMode()) {
+    elements.standingList.append(renderLeagueTable(standings));
+    return;
+  }
+
+  const list = document.createElement("ol");
+  standings.forEach((player) => {
+    const item = document.createElement("li");
+    item.textContent = formatStanding(player);
+    list.append(item);
+  });
+  elements.standingList.append(list);
+}
+
+function getStandings() {
+  if (isRoundMode()) {
+    return [...state.players].sort((a, b) => {
+      const diffA = a.pointsFor - a.pointsAgainst;
+      const diffB = b.pointsFor - b.pointsAgainst;
+      const pointsA = getLeaguePoints(a);
+      const pointsB = getLeaguePoints(b);
+      if (pointsA !== pointsB) return pointsB - pointsA;
+      if (diffA !== diffB) return diffB - diffA;
+      if (a.pointsFor !== b.pointsFor) return b.pointsFor - a.pointsFor;
+      if (a.wins !== b.wins) return b.wins - a.wins;
+      return a.seed - b.seed;
+    });
+  }
+
+  return [...state.players].sort((a, b) => {
     if (a.eliminated !== b.eliminated) return Number(a.eliminated) - Number(b.eliminated);
     if (a.losses !== b.losses) return a.losses - b.losses;
     return a.seed - b.seed;
   });
+}
 
-  elements.standingList.innerHTML = "";
-  standings.forEach((player) => {
-    const item = document.createElement("li");
-    item.textContent = `${player.name} (${player.losses}L${player.eliminated ? ", ตกรอบ" : ""})`;
-    elements.standingList.append(item);
+function getLeaguePoints(player) {
+  return (player.wins * 3) + player.draws;
+}
+
+function renderLeagueTable(standings) {
+  const table = document.createElement("table");
+  table.className = "league-table";
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">ทีม</th>
+        <th scope="col">แข่ง</th>
+        <th scope="col">ชนะ</th>
+        <th scope="col">เสมอ</th>
+        <th scope="col">แพ้</th>
+        <th scope="col">ได้</th>
+        <th scope="col">เสีย</th>
+        <th scope="col">+/-</th>
+        <th scope="col">แต้ม</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  `;
+
+  const body = table.querySelector("tbody");
+  standings.forEach((player, index) => {
+    const diff = player.pointsFor - player.pointsAgainst;
+    const row = document.createElement("tr");
+    const played = player.wins + player.draws + player.losses;
+
+    const rankCell = row.insertCell();
+    rankCell.textContent = index + 1;
+
+    const nameCell = document.createElement("th");
+    nameCell.scope = "row";
+    nameCell.textContent = player.name;
+    row.append(nameCell);
+
+    [played, player.wins, player.draws, player.losses, player.pointsFor, player.pointsAgainst, `${diff >= 0 ? "+" : ""}${diff}`, getLeaguePoints(player)]
+      .forEach((value) => {
+        const cell = row.insertCell();
+        cell.textContent = value;
+      });
+
+    body.append(row);
   });
+
+  return table;
+}
+
+function formatStanding(player) {
+  if (isRoundMode()) {
+    const diff = player.pointsFor - player.pointsAgainst;
+    return `${player.name} (${getLeaguePoints(player)} pts, ${player.wins}W-${player.draws}D-${player.losses}L, Diff ${diff >= 0 ? "+" : ""}${diff})`;
+  }
+
+  return `${player.name} (${player.losses}L${player.eliminated ? ", ตกรอบ" : ""})`;
 }
 
 function getChampion() {
+  if (isRoundMode()) {
+    const allFinished = state.matches.length > 0 && state.matches.every((match) => match.complete);
+    return allFinished ? getStandings()[0] : null;
+  }
+
   if (!isDoubleMode()) {
     const finalRound = Math.max(
       0,
@@ -700,7 +943,9 @@ function render() {
   }
 
   elements.bracket.append(
-    renderMirroredSection("winners", isDoubleMode() ? "Winner Bracket" : "Elimination Bracket"),
+    isRoundMode()
+      ? renderRoundRobinSection()
+      : renderMirroredSection("winners", isDoubleMode() ? "Winner Bracket" : "Elimination Bracket"),
   );
   if (isDoubleMode()) {
     elements.bracket.append(
@@ -714,7 +959,12 @@ function render() {
 
 function updateModeTabs() {
   elements.tabs.forEach((tab) => {
-    const shouldHide = !isDoubleMode() && (tab.dataset.view === "losers" || tab.dataset.view === "finals");
+    const view = tab.dataset.view;
+    const shouldHide = (
+      (isRoundMode() && view !== "all" && view !== "roundrobin")
+      || (!isRoundMode() && view === "roundrobin")
+      || (!isDoubleMode() && !isRoundMode() && (view === "losers" || view === "finals"))
+    );
     tab.hidden = shouldHide;
     if (shouldHide && tab.classList.contains("active")) {
       tab.classList.remove("active");

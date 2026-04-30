@@ -122,7 +122,8 @@ h1 {
 .panel h2,
 .panel label,
 .mode-field legend,
-.ranking li {
+.standings-list li,
+.league-table {
   color: var(--ink);
 }
 
@@ -160,12 +161,19 @@ h1 {
   display: flex;
   gap: 8px;
   align-items: center;
+  min-width: 0;
   min-height: 34px;
-  padding: 0 10px;
+  padding: 6px 10px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #fff;
   cursor: pointer;
+  line-height: 1.25;
+}
+
+.mode-field label span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .mode-field input {
@@ -240,6 +248,7 @@ button:hover {
 
 .summary,
 .ranking {
+  min-width: 0;
   border-top: 1px solid var(--line);
   padding-top: 16px;
 }
@@ -282,15 +291,73 @@ button:hover {
   line-height: 1.25;
 }
 
-.ranking ol {
+.standings-list {
+  max-width: 100%;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.standings-list ol {
   display: grid;
   gap: 8px;
   margin: 0;
   padding-left: 22px;
 }
 
-.ranking li {
+.standings-list li {
   padding-left: 4px;
+}
+
+.league-table {
+  width: 100%;
+  min-width: 660px;
+  table-layout: auto;
+  border-collapse: collapse;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  font-size: 12px;
+}
+
+.league-table th,
+.league-table td {
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--line);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.league-table thead th {
+  background: linear-gradient(135deg, #e0f2fe, #fef3c7);
+  color: var(--arena);
+  font-weight: 900;
+}
+
+.league-table tbody th {
+  width: 180px;
+  min-width: 180px;
+  max-width: none;
+  overflow: visible;
+  color: var(--ink);
+  font-weight: 800;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.league-table tbody tr:first-child {
+  background: #fffbeb;
+}
+
+.league-table tbody tr:last-child th,
+.league-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.league-table td:last-child {
+  color: var(--accent-strong);
+  font-weight: 900;
 }
 
 .stage {
@@ -430,9 +497,11 @@ button:hover {
 }
 
 .tab {
+  flex: 0 0 auto;
   min-width: 86px;
   min-height: 36px;
   padding: 0 14px;
+  white-space: nowrap;
 }
 
 .tab.active {
@@ -504,6 +573,61 @@ button:hover {
     0 0 0 1px rgba(250, 204, 21, 0.36),
     0 18px 48px rgba(14, 165, 233, 0.2),
     0 0 32px rgba(250, 204, 21, 0.18);
+}
+
+.roundrobin-section {
+  border-color: rgba(14, 165, 233, 0.54);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(14, 165, 233, 0.22), transparent 34%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(224, 242, 254, 0.94));
+}
+
+.roundrobin-section::before {
+  border-top-color: var(--accent);
+  box-shadow: 0 0 18px rgba(14, 165, 233, 0.68);
+}
+
+.roundrobin-section .rounds {
+  grid-auto-flow: initial;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  align-items: stretch;
+}
+
+.roundrobin-section .round {
+  align-content: start;
+  gap: 10px;
+  min-width: 0;
+  height: 100%;
+  padding: 12px;
+  border: 2px solid rgba(14, 165, 233, 0.38);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(240, 249, 255, 0.9)),
+    #ffffff;
+  box-shadow: 0 10px 24px rgba(8, 47, 73, 0.1);
+}
+
+.roundrobin-section .round h3 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(250, 204, 21, 0.48);
+  background: linear-gradient(135deg, #e0f2fe, #fffbeb);
+  color: var(--arena);
+  font-weight: 900;
+  text-align: center;
+}
+
+.roundrobin-section .match {
+  height: 100%;
+}
+
+.roundrobin-section .section-title {
+  border-color: rgba(14, 165, 233, 0.52);
+  background: linear-gradient(135deg, #e0f2fe, #ffffff);
 }
 
 .finals-section::before {
@@ -889,6 +1013,37 @@ button:hover {
 }
 
 @media (max-width: 560px) {
+  .shell {
+    padding: 8px;
+  }
+
+  .panel,
+  .stage {
+    border-radius: 8px;
+  }
+
+  .panel {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .brand {
+    align-items: flex-start;
+  }
+
+  .mark {
+    width: 42px;
+    height: 42px;
+  }
+
+  h1 {
+    font-size: 18px;
+  }
+
+  textarea {
+    min-height: 150px;
+  }
+
   .actions {
     grid-template-columns: 1fr;
   }
@@ -907,5 +1062,132 @@ button:hover {
 
   .live-list {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) and (orientation: portrait) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .stage {
+    min-height: auto;
+  }
+
+  .stage-header {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 16px;
+  }
+
+  .stage-header h2 {
+    font-size: 22px;
+  }
+
+  .champion-badge {
+    justify-self: stretch;
+    min-width: 0;
+    padding: 12px 14px;
+    font-size: 18px;
+  }
+
+  .live-panel {
+    padding: 12px;
+  }
+
+  .tabs {
+    padding: 10px 12px;
+  }
+
+  .tab {
+    flex: 1 0 auto;
+    min-width: 74px;
+    padding: 0 10px;
+  }
+
+  .bracket {
+    gap: 12px;
+    padding: 10px;
+    overflow: visible;
+  }
+
+  .bracket-section {
+    padding: 12px;
+  }
+
+  .roundrobin-section .rounds {
+    grid-template-columns: 1fr;
+  }
+
+  .section-title {
+    width: 100%;
+    justify-content: center;
+    font-size: 16px;
+    text-align: center;
+  }
+
+  .centered-bracket {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 10px 0 0;
+  }
+
+  .centered-column {
+    gap: 8px;
+  }
+
+  .centered-column.center {
+    transform: none;
+  }
+
+  .centered-column.left::after,
+  .centered-column.right::before {
+    display: none;
+  }
+
+  .centered-column h3 {
+    min-height: auto;
+    padding: 8px 10px;
+    border: 1px solid rgba(14, 165, 233, 0.18);
+    border-radius: 8px;
+    background: #f0f9ff;
+  }
+
+  .match,
+  .centered-bracket.compact .match,
+  .centered-bracket.ultra-compact .match {
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .centered-bracket.ultra-compact .score-head {
+    display: grid;
+  }
+
+  .centered-bracket.compact .match-status,
+  .centered-bracket.compact .losses,
+  .centered-bracket.ultra-compact .match-status,
+  .centered-bracket.ultra-compact .losses {
+    display: inline;
+  }
+
+  .slot,
+  .centered-bracket.ultra-compact .slot,
+  .score-input,
+  .centered-bracket.ultra-compact .score-input {
+    min-height: 42px;
+    height: 42px;
+  }
+
+  .match-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .score-submit,
+  .undo-result,
+  .centered-bracket.ultra-compact .score-submit,
+  .centered-bracket.ultra-compact .undo-result {
+    min-height: 38px;
+    font-size: 13px;
   }
 }

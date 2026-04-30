@@ -33,6 +33,10 @@
               <input type="radio" name="bracketMode" value="double" checked>
               <span>Double Elimination</span>
             </label>
+            <label>
+              <input type="radio" name="bracketMode" value="round">
+              <span>Round Robin</span>
+            </label>
           </fieldset>
 
           <label class="field">
@@ -75,7 +79,7 @@ Hotel</textarea>
 
           <section class="ranking">
             <h2>อันดับล่าสุด</h2>
-            <ol id="standingList"></ol>
+            <div id="standingList" class="standings-list"></div>
           </section>
         </aside>
 
@@ -104,6 +108,7 @@ Hotel</textarea>
             <button class="tab" data-view="winners" type="button">Winner</button>
             <button class="tab" data-view="losers" type="button">Loser</button>
             <button class="tab" data-view="finals" type="button">Final</button>
+            <button class="tab" data-view="roundrobin" type="button">Round Robin</button>
           </nav>
 
           <div id="bracket" class="bracket" aria-live="polite"></div>
